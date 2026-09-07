@@ -1,0 +1,63 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "id": "b4a69407-e3ed-420d-8bd9-51d1f26b78b0",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
+  "ddl": [
+    {
+      "name": "allowed_clients",
+      "entityType": "tables"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "allowed_client_id",
+      "entityType": "columns",
+      "table": "allowed_clients"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "client_name",
+      "entityType": "columns",
+      "table": "allowed_clients"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "(CURRENT_TIMESTAMP)",
+      "generated": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "table": "allowed_clients"
+    },
+    {
+      "columns": [
+        "allowed_client_id"
+      ],
+      "nameExplicit": false,
+      "name": "allowed_clients_pk",
+      "table": "allowed_clients",
+      "entityType": "pks"
+    },
+    {
+      "columns": [
+        "client_name"
+      ],
+      "nameExplicit": false,
+      "name": "allowed_clients_client_name_unique",
+      "entityType": "uniques",
+      "table": "allowed_clients"
+    }
+  ],
+  "renames": []
+}

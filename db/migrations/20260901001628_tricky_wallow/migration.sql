@@ -1,0 +1,1 @@
+ALTER TABLE `allowed_clients` RENAME COLUMN `client_name` TO `client_secret`;

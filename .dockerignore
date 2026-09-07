@@ -1,0 +1,6 @@
+.data/
+.github/
+.output/
+node_modules/
+
+.env

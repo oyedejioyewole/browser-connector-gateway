@@ -1,0 +1,144 @@
+diff --git a/dist/_dev.mjs b/dist/_dev.mjs
+index d59ee567885835805c5c43fcfef9d71acacffcf4..9079df022764ac4d5d604cfeb6587ef92f10671c 100644
+--- a/dist/_dev.mjs
++++ b/dist/_dev.mjs
+@@ -3,6 +3,7 @@ import { watch as watch$1 } from "./_libs/readdirp+chokidar.mjs";
+ import { debounce } from "./_libs/perfect-debounce.mjs";
+ import { createProxyServer } from "./_libs/httpxy.mjs";
+ import { resolveRunnerDeps } from "./_dev2.mjs";
++import { createWebSocketProxy } from "crossws";
+ import consola$1 from "consola";
+ import { createReadStream } from "node:fs";
+ import { readFile, stat as stat$1 } from "node:fs/promises";
+@@ -10,7 +11,7 @@ import { joinURL } from "ufo";
+ import { createBrotliCompress, createGzip } from "node:zlib";
+ import { RunnerManager, loadRunner } from "env-runner";
+ import { H3, HTTPError, defineHandler, fromNodeHandler, getRequestIP, getRequestURL, serveStatic, toEventHandler } from "h3";
+-import { serve } from "srvx/node";
++import { serve } from "srvx";
+ import { FastResponse } from "srvx";
+ function isLocalDevRequest(event) {
+ 	const { socket } = event.runtime?.node?.req || {};
+@@ -392,6 +393,7 @@ var NitroDevServer = class NitroDevServer extends NitroDevApp {
+ 	#watcher;
+ 	#manager;
+ 	#workerIdCtr = 0;
++	#workerAddr;
+ 	#workerError;
+ 	#workerRetries = 0;
+ 	#building = true;
+@@ -417,6 +419,7 @@ var NitroDevServer = class NitroDevServer extends NitroDevApp {
+ 		this.#manager = new RunnerManager();
+ 		this.#manager.onReady(async (_runner, addr) => {
+ 			this.#workerRetries = 0;
++			this.#workerAddr = addr;
+ 			writeDevBuildInfo(this.nitro, addr).catch((error) => {
+ 				this.nitro.logger.warn(`Failed to write dev build info: ${error instanceof Error ? error.message : String(error)}`);
+ 			});
+@@ -457,20 +460,26 @@ var NitroDevServer = class NitroDevServer extends NitroDevApp {
+ 			status: 501,
+ 			statusText: "Worker does not support upgrades."
+ 		});
++		for (let i = 0; i < 200 && !this.#manager.ready; i++) await new Promise((r) => setTimeout(r, 50));
+ 		return this.#manager.upgrade({ node: {
+ 			req,
+ 			socket,
+ 			head
+ 		} });
+ 	}
+-	listen(opts) {
++	async listen(opts) {
++		const websocket = this.nitro.options.features.websocket ?? this.nitro.options.experimental.websocket;
++		const plugins = [...(opts?.plugins ?? [])];
++		const nativeRuntime = "Bun" in globalThis || "Deno" in globalThis;
++		if (websocket && nativeRuntime) plugins.push(await createWebSocketProxyPlugin(() => this.#workerAddr));
+ 		const server = serve({
+ 			...opts,
+ 			fetch: this.fetch,
++			plugins,
+ 			gracefulShutdown: false
+ 		});
+ 		this.#listeners.push(server);
+-		if (server.node?.server) server.node.server.on("upgrade", (req, sock, head) => this.upgrade(req, sock, head));
++		if (websocket && !nativeRuntime && server.node?.server) server.node.server.on("upgrade", (req, sock, head) => this.upgrade(req, sock, head));
+ 		return server;
+ 	}
+ 	async close() {
+@@ -580,4 +589,32 @@ var NitroDevServer = class NitroDevServer extends NitroDevApp {
+ 		});
+ 	}
+ };
++
++async function createWebSocketProxyPlugin(getAddress) {
++	const { plugin } = "Bun" in globalThis ? await import("crossws/server/bun") : await import("crossws/server/deno");
++	const proxy = createWebSocketProxy({
++		target: (peer) => {
++			const addr = getAddress();
++			if (!addr?.port) throw new Error("Dev worker is not ready");
++			const { pathname, search } = new URL(peer.request.url);
++			return `ws://${addr.host || "127.0.0.1"}:${addr.port}${pathname}${search}`;
++		},
++		forwardProtocol: (peer) => {
++			try {
++				const header = peer.request.headers.get("sec-websocket-protocol");
++				return header ? header.split(",").map((p) => p.trim()).filter(Boolean) : undefined;
++			} catch {
++				return undefined;
++			}
++		}
++	});
++	const hooks = {
++		...proxy,
++		async upgrade(request) {
++			for (let i = 0; i < 200 && !getAddress()?.port; i++) await new Promise((r) => setTimeout(r, 50));
++			return proxy.upgrade?.(request);
++		}
++	};
++	return plugin({ resolve: () => hooks });
++}
+ export { NitroDevApp, NitroDevServer, createDevServer };
+diff --git a/dist/presets/_nitro/runtime/nitro-dev.mjs b/dist/presets/_nitro/runtime/nitro-dev.mjs
+index a0db93876634e98076bafbc1f0fd2e111aac2be8..f8d0e96ef9532e48b04eabac8be30dbe4d104079 100644
+--- a/dist/presets/_nitro/runtime/nitro-dev.mjs
++++ b/dist/presets/_nitro/runtime/nitro-dev.mjs
+@@ -11,12 +11,9 @@ trapUnhandledErrors();
+ if (import.meta._tasks) {
+ 	startScheduleRunner({});
+ }
+-const ws = import.meta._websocket ? await import("crossws/adapters/node").then((m) => (m.default || m)({ resolve: resolveWebsocketHooks })) : undefined;
+ export default {
+ 	fetch: nitroApp.fetch,
+ 	plugins: [...tracingSrvxPlugins],
+-	upgrade: ws ? (context) => {
+-		ws.handleUpgrade(context.node.req, context.node.socket, context.node.head);
+-	} : undefined,
++	websocket: import.meta._websocket ? { resolve: resolveWebsocketHooks } : undefined,
+ 	ipc: { onClose: () => nitroHooks.callHook("close") }
+ };
+diff --git a/dist/runtime/internal/app.mjs b/dist/runtime/internal/app.mjs
+index 581730a9c62b6e81729947eaa30d67d351fff4c6..759dc8ce998208b6e863d02fc35d63d2651ca758 100644
+--- a/dist/runtime/internal/app.mjs
++++ b/dist/runtime/internal/app.mjs
+@@ -40,14 +40,17 @@ export function serverFetch(resource, init, context) {
+ 
+ 
+ 
+-const kWebSocketHooks = /* @__PURE__ */ Symbol.for("crossws.hooks");
+-export async function resolveWebsocketHooks(req) {
++const websocketHooksCache = /* @__PURE__ */ new WeakMap();
++export function resolveWebsocketHooks(req) {
+ 	
+ 	
+ 	
+-	const res = await serverFetch(req);
+-	const carrier = req;
+-	return res.crossws ?? carrier[kWebSocketHooks] ?? carrier.context?.[kWebSocketHooks] ?? {};
++	let hooks = websocketHooksCache.get(req);
++	if (!hooks) {
++		hooks = serverFetch(req).then((res) => res.crossws || {});
++		websocketHooksCache.set(req, hooks);
++	}
++	return hooks;
+ }
+ export function fetch(resource, init, context) {
+ 	if (typeof resource === "string" && resource.charCodeAt(0) === 47) {

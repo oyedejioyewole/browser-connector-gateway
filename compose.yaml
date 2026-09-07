@@ -1,0 +1,51 @@
+services:
+  browser-connector:
+    deploy:
+      resources:
+        limits:
+          cpus: 4
+          memory: 8G
+    container_name: browser-connector
+    environment:
+      - CAMOUFOX_API_HOST=::1
+      - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG}
+      - CAMOUFOX_GEOIP=false
+      - CAMOUFOX_MODE=pool
+      - CAMOUFOX_POOL_SIZE=3
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    image: browser-connector:latest
+    ports:
+      - 3000:3000
+    # pull_policy: never
+    restart: unless-stopped
+    # More shared memory for multiple browsers
+    shm_size: 3gb
+
+  browser-connector-gateway:
+    container_name: browser-connector-gateway
+    depends_on:
+      browser-connector:
+        condition: service_healthy
+    environment:
+      - NITRO_APP_SECRET=${NITRO_APP_SECRET}
+      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL}
+    image: browser-connector-gateway:latest
+    # Bind this service's network stack to the network stack of browser-connector
+    network_mode: service:browser-connector
+    # pull_policy: never
+    restart: unless-stopped
+    volumes:
+      - browser-connector-gateway-data:/app/.data
+
+volumes:
+  browser-connector-gateway:
+    name: browser-connector-gateway-data
+
+networks:
+  default:
+    name: stealth-browser-connector
