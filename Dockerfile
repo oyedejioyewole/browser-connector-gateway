@@ -1,6 +1,6 @@
 FROM oven/bun:slim AS build
 
-COPY package.json bun.lock ./
+COPY --parents package.json bun.lock patches/ ./
 RUN bun install --frozen-lockfile
 
 COPY . .
