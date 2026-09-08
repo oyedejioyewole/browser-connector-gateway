@@ -37,7 +37,3 @@ services:
 volumes:
   browser-connector-gateway:
     name: browser-connector-gateway-data
-
-networks:
-  default:
-    name: browser-connector
