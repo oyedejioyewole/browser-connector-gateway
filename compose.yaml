@@ -2,9 +2,9 @@ services:
   browser-connector:
     environment:
       - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG:-false}
-      - CAMOUFOX_GEOIP=false
-      - CAMOUFOX_MODE=pool
-      - CAMOUFOX_POOL_SIZE=3
+      - CAMOUFOX_GEOIP=${CAMOUFOX_GEOIP:-false}
+      - CAMOUFOX_MODE=${CAMOUFOX_MODE:-pool}
+      - CAMOUFOX_POOL_SIZE=${CAMOUFOX_POOL_SIZE:-3}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -22,7 +22,7 @@ services:
       browser-connector:
         condition: service_healthy
     environment:
-      - NITRO_APP_SECRET=${NITRO_APP_SECRET?:Missing NITRO_APP_SECRET}
-      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL?:Missing NITRO_UPSTREAM_URL}
+      - NITRO_APP_SECRET=${NITRO_APP_SECRET:?}
+      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL:?}
     image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
     restart: unless-stopped
