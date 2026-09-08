@@ -14,8 +14,8 @@ services:
       start_period: 60s
     image: ghcr.io/oyedejioyewole/browser-connector:edge
     ports:
-      - 3000:3000
-      - 8080:8080
+      - 3000
+      - 8080
     restart: unless-stopped
 
   browser-connector-gateway:
