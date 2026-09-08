@@ -1,8 +1,7 @@
 services:
   browser-connector:
     environment:
-      - CAMOUFOX_API_HOST=::1
-      - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG}
+      - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG:-false}
       - CAMOUFOX_GEOIP=false
       - CAMOUFOX_MODE=pool
       - CAMOUFOX_POOL_SIZE=3
@@ -23,9 +22,7 @@ services:
       browser-connector:
         condition: service_healthy
     environment:
-      - NITRO_APP_SECRET=${NITRO_APP_SECRET}
-      - NITRO_UPSTREAM_URL=http://[::1]:8080
+      - NITRO_APP_SECRET=${NITRO_APP_SECRET?:Missing NITRO_APP_SECRET}
+      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL?:Missing NITRO_UPSTREAM_URL}
     image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
-    # Bind this service's network stack to the network stack of browser-connector
-    # network_mode: service:browser-connector
     restart: unless-stopped
