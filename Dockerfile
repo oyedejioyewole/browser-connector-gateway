@@ -12,7 +12,9 @@ WORKDIR /app
 
 COPY --from=build /home/bun/app/.output/ ./
 
+# Defines a secret which is used in hashing allowed_clients secrets.
 ENV NITRO_APP_SECRET=""
+# Defines where to reach the browser-connector instance.
 ENV NITRO_UPSTREAM_URL=""
 
 EXPOSE 3000
