@@ -27,5 +27,5 @@ services:
       - NITRO_UPSTREAM_URL=http://[::1]:8080
     image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
     # Bind this service's network stack to the network stack of browser-connector
-    network_mode: service:browser-connector
+    # network_mode: service:browser-connector
     restart: unless-stopped
