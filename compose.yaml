@@ -1,6 +1,5 @@
 services:
   browser-connector:
-    container_name: browser-connector
     environment:
       - CAMOUFOX_API_HOST=::1
       - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG}
@@ -20,7 +19,6 @@ services:
     restart: unless-stopped
 
   browser-connector-gateway:
-    container_name: browser-connector-gateway
     depends_on:
       browser-connector:
         condition: service_healthy
