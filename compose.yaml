@@ -31,9 +31,3 @@ services:
     # Bind this service's network stack to the network stack of browser-connector
     network_mode: service:browser-connector
     restart: unless-stopped
-    volumes:
-      - browser-connector-gateway:/app/.data
-
-volumes:
-  browser-connector-gateway:
-    name: browser-connector-gateway-data
