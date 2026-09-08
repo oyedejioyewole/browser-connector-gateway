@@ -18,10 +18,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    image: browser-connector:latest
+    image: ghcr.io/oyedejioyewole/browser-connector:latest
     ports:
       - 3000:3000
-    # pull_policy: never
     restart: unless-stopped
     # More shared memory for multiple browsers
     shm_size: 3gb
@@ -33,14 +32,13 @@ services:
         condition: service_healthy
     environment:
       - NITRO_APP_SECRET=${NITRO_APP_SECRET}
-      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL}
-    image: browser-connector-gateway:latest
+      - NITRO_UPSTREAM_URL=http://[::1]:8080
+    image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
     # Bind this service's network stack to the network stack of browser-connector
     network_mode: service:browser-connector
-    # pull_policy: never
     restart: unless-stopped
     volumes:
-      - browser-connector-gateway-data:/app/.data
+      - browser-connector-gateway:/app/.data
 
 volumes:
   browser-connector-gateway:
@@ -48,4 +46,4 @@ volumes:
 
 networks:
   default:
-    name: stealth-browser-connector
+    name: browser-connector
