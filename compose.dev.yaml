@@ -1,5 +1,11 @@
 services:
   browser-connector:
+    deploy:
+      resources:
+        limits:
+          cpus: 4
+          memory: 8G
+    container_name: browser-connector
     environment:
       - CAMOUFOX_API_HOST=::1
       - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG}
@@ -12,13 +18,15 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    image: ghcr.io/oyedejioyewole/browser-connector:edge
+    image: ghcr.io/oyedejioyewole/browser-connector:latest
     ports:
-      - 127.0.0.1:3000:3000
-      - 127.0.0.1:8080:8080
+      - 3000:3000
     restart: unless-stopped
+    # More shared memory for multiple browsers
+    shm_size: 3gb
 
   browser-connector-gateway:
+    container_name: browser-connector-gateway
     depends_on:
       browser-connector:
         condition: service_healthy
@@ -29,3 +37,13 @@ services:
     # Bind this service's network stack to the network stack of browser-connector
     network_mode: service:browser-connector
     restart: unless-stopped
+    volumes:
+      - browser-connector-gateway:/app/.data
+
+volumes:
+  browser-connector-gateway:
+    name: browser-connector-gateway-data
+
+networks:
+  default:
+    name: browser-connector
