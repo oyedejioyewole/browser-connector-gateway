@@ -48,11 +48,11 @@ export default defineMiddleware(async (event) => {
 
   const { upstream } = useRuntimeConfig();
   const upstreamResponse = await fetch(`${upstream.url}/next`);
-  const upstreamResponseJSON = await upstreamResponse.json();
+  const upstreamResponseJson = await upstreamResponse.json();
 
   const parsedUpstreamResponseJson = z.parse(UPSTREAM_RESPONSE_SCHEMA, {
     status: upstreamResponse.status,
-    ...upstreamResponseJSON,
+    ...upstreamResponseJson,
   });
 
   if (parsedUpstreamResponseJson.status === 503)
