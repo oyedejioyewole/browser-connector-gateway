@@ -22,7 +22,7 @@ services:
       browser-connector:
         condition: service_healthy
     environment:
-      - NITRO_APP_SECRET=${NITRO_APP_SECRET:?}
-      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL:?}
+      - NITRO_APP_SECRET=${NITRO_APP_SECRET}
+      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL}
     image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
     restart: unless-stopped
