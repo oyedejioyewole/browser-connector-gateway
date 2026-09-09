@@ -1,10 +1,8 @@
 services:
-  browser-connector:
+  browser-connector-cluster:
     environment:
-      - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG:-false}
-      - CAMOUFOX_GEOIP=${CAMOUFOX_GEOIP:-false}
-      - CAMOUFOX_MODE=${CAMOUFOX_MODE:-pool}
-      - CAMOUFOX_POOL_SIZE=${CAMOUFOX_POOL_SIZE:-3}
+      - CAMOUFOX_GEOIP=false
+      - CAMOUFOX_MODE=pool
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -18,7 +16,7 @@ services:
 
   browser-connector-gateway:
     depends_on:
-      browser-connector:
+      browser-connector-cluster:
         condition: service_healthy
     environment:
       - NITRO_APP_SECRET=${NITRO_APP_SECRET}
@@ -27,3 +25,8 @@ services:
     ports:
       - 127.0.0.1:3000:3000
     restart: unless-stopped
+    volumes:
+      - browser-connector-gateway:/app/.data
+volumes:
+  browser-connector-gateway:
+    name: browser-connector-gateway-data
