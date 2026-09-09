@@ -60,10 +60,8 @@ export default defineMiddleware(async (event) => {
       status: parsedUpstreamResponseJson.status,
     });
 
-  // const websocketUrl = new URL(parsedUpstreamResponseJson.endpoint);
-  // websocketUrl.hostname = new URL(upstream.url).hostname;
+  const websocketUrl = new URL(parsedUpstreamResponseJson.endpoint);
+  websocketUrl.hostname = new URL(upstream.url).hostname;
 
-  // console.log(websocketUrl.href);
-
-  event.context.websocketEndpoint = parsedUpstreamResponseJson.endpoint;
+  event.context.websocketEndpoint = websocketUrl.href;
 });
