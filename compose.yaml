@@ -25,3 +25,8 @@ services:
     ports:
       - 127.0.0.1:3000:3000
     restart: unless-stopped
+    volumes:
+      - browser-connector-gateway:/app/.data
+
+volumes:
+  browser-connector-gateway:
