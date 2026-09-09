@@ -13,7 +13,6 @@ services:
       start_period: 60s
     image: ghcr.io/oyedejioyewole/browser-connector:edge
     ports:
-      - 127.0.0.1:3000:3000
       - 127.0.0.1:8080:8080
     restart: unless-stopped
 
@@ -25,4 +24,6 @@ services:
       - NITRO_APP_SECRET=${NITRO_APP_SECRET}
       - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL}
     image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
+    ports:
+      - 127.0.0.1:3000:3000
     restart: unless-stopped
