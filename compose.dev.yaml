@@ -1,4 +1,5 @@
 name: browser-connector
+
 services:
   cluster:
     environment:
