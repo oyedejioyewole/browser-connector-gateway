@@ -5,36 +5,31 @@ import { z } from "zod";
 
 import errors from "#utils/errors.ts";
 import {
-  getAuthToken,
-  validateAuthToken,
-} from "#utils/middleware/auth-token.ts";
-
-const UPSTREAM_RESPONSE_SCHEMA = z.union([
-  z.object({
-    status: z.literal(200),
-    endpoint: z.url(),
-  }),
-  z.object({ status: z.literal(503), error: z.string().nonempty() }),
-]);
+  getClientSecret,
+  validateClientSecret,
+} from "#utils/middleware/client-secret.ts";
+import { clientUuidSchema, upstreamResponseSchemas } from "#utils/schema.ts";
 
 export default defineMiddleware(async (event) => {
   if (!event.url.pathname.startsWith("/client")) return;
 
-  const parsedAuthToken = getAuthToken(event);
-  if (!parsedAuthToken.success)
-    throw errors.INVALID_AUTH_TOKEN(z.treeifyError(parsedAuthToken.error));
+  const parsedClientSecret = getClientSecret(event, "query");
+  if (!parsedClientSecret.success)
+    throw errors.INVALID_CLIENT_SECRET(
+      z.treeifyError(parsedClientSecret.error),
+    );
 
   const { app } = useRuntimeConfig();
-  if (app.secret === parsedAuthToken.data)
-    throw errors.INVALID_TOKEN_PERMISSIONS();
+  if (app.secret === parsedClientSecret.data.token)
+    throw errors.INVALID_SECRET_PERMISSIONS();
 
-  const parsedRows = await validateAuthToken(parsedAuthToken.data);
+  const parsedRows = await validateClientSecret(parsedClientSecret.data.token);
   if (!parsedRows.success)
-    throw errors.INVALID_TOKEN_PERMISSIONS(z.treeifyError(parsedRows.error));
+    throw errors.INVALID_SECRET_PERMISSIONS(z.treeifyError(parsedRows.error));
 
   const clientUuid = getRouterParam(event, "client-uuid");
 
-  const parsedClientUuid = z.uuidv7().safeParse(clientUuid);
+  const parsedClientUuid = clientUuidSchema.safeParse(clientUuid);
   if (!parsedClientUuid.success)
     throw errors.ROUTE_NOT_FOUND(event.url.pathname);
 
@@ -50,7 +45,7 @@ export default defineMiddleware(async (event) => {
   const upstreamResponse = await fetch(`${upstream.url}/next`);
   const upstreamResponseJson = await upstreamResponse.json();
 
-  const parsedUpstreamResponseJson = z.parse(UPSTREAM_RESPONSE_SCHEMA, {
+  const parsedUpstreamResponseJson = z.parse(upstreamResponseSchemas["/next"], {
     status: upstreamResponse.status,
     ...upstreamResponseJson,
   });
