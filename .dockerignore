@@ -1,6 +1,13 @@
 .data/
-.github/
+.cache/
+.git/
+.nitro/
 .output/
 node_modules/
+dist/
 
 .env
+.env.*
+compose.yaml
+compose.dev.yaml
+README.md
