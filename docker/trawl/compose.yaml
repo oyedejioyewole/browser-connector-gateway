@@ -1,0 +1,25 @@
+services:
+  trawl:
+    depends_on: !override
+      trawl-warp:
+        condition: service_healthy
+    extends:
+      file: https://github.com/germondai/trawl.git#dev:docker-compose.prod.yml
+      service: trawl
+    mem_limit: !reset null
+    ports:
+      - 127.0.0.1:8191:8191
+      - 127.0.0.1:8192:8192
+    shm_size: !reset null
+  trawl-warp:
+    container_name: !reset null
+    extends:
+      file: https://github.com/cmj2002/warp-docker.git
+      service: warp
+    volumes:
+      - trawl_warp:/var/lib/cloudflare-warp
+    ports: !reset null
+
+volumes:
+  trawl_proxy_ca:
+  trawl_warp:
