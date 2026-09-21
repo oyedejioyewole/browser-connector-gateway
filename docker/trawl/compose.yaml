@@ -6,11 +6,9 @@ services:
     extends:
       file: https://github.com/germondai/trawl.git#dev:docker-compose.prod.yml
       service: trawl
-    mem_limit: !reset null
     ports:
       - 127.0.0.1:8191:8191
       - 127.0.0.1:8192:8192
-    shm_size: !reset null
   trawl-warp:
     container_name: !reset null
     extends:
@@ -18,7 +16,7 @@ services:
       service: warp
     volumes:
       - trawl_warp:/var/lib/cloudflare-warp
-    ports: !reset null
+    ports: !reset []
 
 volumes:
   trawl_proxy_ca:
