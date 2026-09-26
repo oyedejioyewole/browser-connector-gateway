@@ -6,7 +6,7 @@ services:
     extends:
       file: https://github.com/germondai/trawl.git#dev:docker-compose.prod.yml
       service: trawl
-    ports:
+    ports: !override
       - 127.0.0.1:8191:8191
       - 127.0.0.1:8192:8192
   trawl-warp:
