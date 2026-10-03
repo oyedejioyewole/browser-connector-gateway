@@ -6,6 +6,7 @@ services:
     extends:
       file: https://github.com/germondai/trawl.git#dev:docker-compose.prod.yml
       service: trawl
+    pids_limit: 1024
     ports: !override
       - 127.0.0.1:8191:8191
       - 127.0.0.1:8192:8192
@@ -19,5 +20,6 @@ services:
     ports: !reset []
 
 volumes:
+  trawl_metrics:
   trawl_proxy_ca:
   trawl_warp:
