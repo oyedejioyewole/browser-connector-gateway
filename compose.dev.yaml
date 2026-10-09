@@ -14,10 +14,8 @@ services:
     ports:
       - 8080:8080
       - 9222:9222
-    # Shared memory size (required for browsers)
-    shm_size: 2gb
     volumes:
-      - trawl_proxy_ca:${TRAWL_MITM_CA_DIR}:ro
+      - trawl_proxy_ca:/usr/local/share/ca-certificates/trawl:ro
 
   gateway:
     build: .
