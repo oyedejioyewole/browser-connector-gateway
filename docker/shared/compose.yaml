@@ -7,10 +7,10 @@ services:
       - CAMOUFOX_MODE=${CAMOUFOX_MODE:-pool}
       - CAMOUFOX_POOL_SIZE=${CAMOUFOX_POOL_SIZE:-3}
       - CAMOUFOX_PROXY=${CAMOUFOX_PROXY:?}
-      - TRAWL_MITM_CA_DIR=${TRAWL_MITM_CA_DIR:?}
       - TRAWL_MITM_CA_URL=${TRAWL_ORIGIN:?}/proxy-ca.crt
       - NODE_USE_SYSTEM_CA=1
       - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+      - TRAWL_MITM_CA_DIR=/usr/local/share/ca-certificates/trawl
     image: ghcr.io/oyedejioyewole/browser-connector:edge
     restart: unless-stopped
     volumes:
