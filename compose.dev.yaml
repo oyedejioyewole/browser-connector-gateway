@@ -1,32 +1,55 @@
+include:
+  - path: https://github.com/germondai/trawl.git
+
 name: browser-connector
 
 services:
   cluster:
-    environment:
-      - CAMOUFOX_DEBUG=true
-      - CAMOUFOX_GEOIP=false
-      - CAMOUFOX_MODE=pool
-    image: ghcr.io/oyedejioyewole/browser-connector:edge
+    depends_on:
+      trawl:
+        condition: service_healthy
+    extends:
+      file: ./docker/shared/compose.yaml
+      service: cluster
     ports:
       - 8080:8080
-    restart: unless-stopped
-    # More shared memory for multiple browsers
-    shm_size: 3gb
+      - 9222:9222
+    # Shared memory size (required for browsers)
+    shm_size: 2gb
+    volumes:
+      - trawl_proxy_ca:${TRAWL_MITM_CA_DIR}:ro
 
   gateway:
     build: .
     depends_on:
       cluster:
         condition: service_healthy
-    environment:
-      - NITRO_APP_SECRET=${NITRO_APP_SECRET:?}
-      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL:?}
+    extends:
+      file: ./docker/shared/compose.yaml
+      service: gateway
     ports:
       - 3000:3000
+    volumes:
+      - gateway-data:/app/.data
+
+  trawl:
+    depends_on:
+      warp:
+        condition: service_healthy
+    environment:
+      - RESIDENTIAL_PROXY_URL=${RESIDENTIAL_PROXY_URL:-socks5://warp:1080}
+    restart: unless-stopped
+
+  warp:
+    container_name: !reset null
+    extends:
+      file: https://github.com/cmj2002/warp-docker.git
+      service: warp
+    ports: !reset []
     restart: unless-stopped
     volumes:
-      - browser-connector-gateway:/app/.data
+      - warp-cloudflare-warp:/var/lib/cloudflare-warp
 
 volumes:
-  browser-connector-gateway:
-    name: browser-connector-gateway-data
+  gateway-data:
+  warp-cloudflare-warp:

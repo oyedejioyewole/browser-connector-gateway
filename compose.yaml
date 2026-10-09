@@ -1,26 +1,36 @@
 services:
   browser-connector-cluster:
-    environment:
-      - CAMOUFOX_GEOIP=false
-      - CAMOUFOX_MODE=pool
-    image: ghcr.io/oyedejioyewole/browser-connector:edge
-    ports:
-      - 127.0.0.1:8080:8080
-    restart: unless-stopped
+    depends_on:
+      browser-connector-traffic-bypass-prober:
+        condition: service_healthy
+    extends:
+      file: ./docker/shared/compose.yaml
+      service: cluster
+    pids_limit: 1024
 
   browser-connector-gateway:
     depends_on:
       browser-connector-cluster:
         condition: service_healthy
-    environment:
-      - NITRO_APP_SECRET=${NITRO_APP_SECRET}
-      - NITRO_UPSTREAM_URL=${NITRO_UPSTREAM_URL}
+    extends:
+      file: ./docker/shared/compose.yaml
+      service: gateway
     image: ghcr.io/oyedejioyewole/browser-connector-gateway:latest
     ports:
-      - 127.0.0.1:3000:3000
-    restart: unless-stopped
+      - 127.0.0.1::3000
     volumes:
-      - browser-connector-gateway:/app/.data
+      - browser-connector-gateway-data:/app/.data
+
+  browser-connector-traffic-bypass-prober:
+    entrypoint: ["tail", "-f", "/dev/null"]
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "${TRAWL_ORIGIN:?}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    image: alpine/curl:latest
+    restart: unless-stopped
 
 volumes:
-  browser-connector-gateway:
+  browser-connector-gateway-data:
