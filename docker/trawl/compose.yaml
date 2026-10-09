@@ -8,8 +8,8 @@ services:
       service: trawl
     pids_limit: 1024
     ports: !override
-      - 127.0.0.1:8191:8191
-      - 127.0.0.1:8192:8192
+      - 127.0.0.1::8191
+
   trawl-warp:
     container_name: !reset null
     extends:
