@@ -4,7 +4,6 @@ import { z } from "zod";
 
 import { db } from "#db/index.ts";
 import { allowedClients, insertSchema } from "#db/schema.ts";
-import { getSecretPrefix } from "#utils/secrets.ts";
 
 export default defineHandler(async (event) => {
   const { app } = useRuntimeConfig();
@@ -17,20 +16,16 @@ export default defineHandler(async (event) => {
     .insert(allowedClients)
     .values({
       id: clientId,
-      clientSecret: `${getSecretPrefix(app.secret)}${hasher.digest("hex")}`,
+      clientSecret: `${event.context.gateway.secretPrefix}${hasher.digest("hex")}`,
     })
     .returning();
 
   const parsedRow = z
     .array(insertSchema)
-    .transform((values) => {
-      const rowProperties = values.at(0)!;
-
-      return {
-        createdAt: rowProperties.createdAt,
-        endpoint: `ws://${event.url.host}/client/${rowProperties.id}?token=${rowProperties.clientSecret}`,
-      };
-    })
+    .transform(([row]) => ({
+      createdAt: row.createdAt,
+      endpoint: `${event.url.protocol === "https:" ? "wss://" : "ws://"}${event.url.host}/client/${row.id}?token=${row.clientSecret}`,
+    }))
     .parse(insertedRow);
 
   event.res.status = 201;

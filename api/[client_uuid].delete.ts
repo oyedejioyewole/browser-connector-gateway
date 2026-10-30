@@ -7,7 +7,7 @@ import { db } from "#db/index.ts";
 import { allowedClients, selectSchema } from "#db/schema.ts";
 
 export default defineHandler(async (event) => {
-  const clientId = getRouterParam(event, "client-uuid");
+  const clientId = getRouterParam(event, "client_uuid");
   if (!clientId)
     throw new HTTPError("Client didn't provided :client-uuid parameter", {
       status: 400,

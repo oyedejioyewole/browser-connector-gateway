@@ -11,11 +11,11 @@ import type { H3Event } from "nitro/h3";
 export function getClientSecret(
   event: H3Event,
   extractFrom: "query",
-): ReturnType<typeof authorizationSchemas.query.safeParse>;
+): ReturnType<(typeof authorizationSchemas)["query"]["safeParse"]>;
 export function getClientSecret(
   event: H3Event,
   extractFrom?: "headers",
-): ReturnType<typeof authorizationSchemas.header.safeParse>;
+): ReturnType<(typeof authorizationSchemas)["header"]["safeParse"]>;
 export function getClientSecret(
   event: H3Event,
   extractFrom: "headers" | "query" = "headers",
@@ -23,10 +23,18 @@ export function getClientSecret(
   switch (extractFrom) {
     case "query":
       const queryParameters = getQuery(event);
-      return authorizationSchemas.query.safeParse(queryParameters);
+
+      return authorizationSchemas.query
+        .refine(({ token }) =>
+          token.startsWith(event.context.gateway.secretPrefix),
+        )
+        .safeParse(queryParameters);
     case "headers":
       const authorizationHeader = event.req.headers.get("Authorization");
-      return authorizationSchemas.header.safeParse(authorizationHeader);
+
+      return authorizationSchemas.header
+        .refine((token) => token.startsWith(event.context.gateway.secretPrefix))
+        .safeParse(authorizationHeader);
     default:
       throw "extractFrom must either be 'headers' or 'query'";
   }
