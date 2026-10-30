@@ -13,19 +13,16 @@
   },
   "devDependencies": {
     "drizzle-kit": "^1.0.0-rc.5-ab785fc",
-    "nitro": "^3.0.260903-beta",
+    "nitro": "^3.0.261029-rc",
     "typescript": "^7.0.2"
   },
   "dependencies": {
-    "crossws": "^0.4.15",
-    "db0": "^0.4.1",
+    "crossws": "^0.4.17",
+    "db0": "^0.4.2",
     "drizzle-orm": "^1.0.0-rc.5-ab785fc",
-    "zod": "^4.6.5"
-  },
-  "patchedDependencies": {
-    "nitro@3.0.260903-beta": "patches/nitro@3.0.260903-beta.patch"
+    "zod": "^4.6.7"
   },
   "optionalDependencies": {
-    "@types/bun": "^1.4.2"
+    "@types/bun": "^1.4.4"
   }
 }
