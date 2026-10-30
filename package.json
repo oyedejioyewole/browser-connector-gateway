@@ -2,11 +2,10 @@
   "name": "browser-connector-gateway",
   "type": "module",
   "scripts": {
-    "build": "nitro build",
+    "serve": "nitro serve",
     "db:prepare": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
-    "dev": "nitro dev",
-    "preview": "nitro preview"
+    "dev": "nitro dev"
   },
   "imports": {
     "#*": "./*"

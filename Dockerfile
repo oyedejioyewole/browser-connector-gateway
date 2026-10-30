@@ -4,14 +4,6 @@ COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 
 COPY . .
-RUN bun --bun run build
-
-FROM oven/bun:slim AS app
-
-WORKDIR /app
-
-COPY --from=build /home/bun/app/docker/scripts/browser-connector-gateway.ts ./healthcheck.ts
-COPY --from=build /home/bun/app/.output/ ./
 
 # Defines a secret which is used in hashing secrets in the `allowed_clients` table.
 ENV NITRO_APP_SECRET=
@@ -22,6 +14,6 @@ EXPOSE 3000
 VOLUME ["/app/.data/"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD ["bun", "healthcheck.ts"]
+  CMD ["bun", "docker/scripts/browser-connector-gateway.ts"]
 
-CMD ["bun", "server/index.mjs"]
+CMD ["bun", "--bun", "serve"]
