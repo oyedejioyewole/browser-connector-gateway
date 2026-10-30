@@ -10,6 +10,7 @@ FROM oven/bun:slim AS app
 
 WORKDIR /app
 
+COPY --from=build /home/bun/app/docker/scripts/browser-connector-gateway.ts ./healthcheck.ts
 COPY --from=build /home/bun/app/.output/ ./
 
 # Defines a secret which is used in hashing secrets in the `allowed_clients` table.
@@ -21,6 +22,6 @@ EXPOSE 3000
 VOLUME ["/app/.data/"]
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD ["bun", "-e", "fetch('http://localhost:3000/health').then((response) => process.exit(response.ok ? 0 : 1)).catch(() => process.exit(1))"]
+  CMD ["bun", "healthcheck.ts"]
 
 CMD ["bun", "server/index.mjs"]

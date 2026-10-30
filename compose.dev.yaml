@@ -13,7 +13,7 @@ services:
       service: cluster
     ports:
       - 8080:8080
-      - 9222:9222
+      - 9222-9230:9222-9230
     volumes:
       - trawl_proxy_ca:/usr/local/share/ca-certificates/trawl:ro
 
@@ -34,8 +34,7 @@ services:
     depends_on:
       warp:
         condition: service_healthy
-    environment:
-      - RESIDENTIAL_PROXY_URL=${RESIDENTIAL_PROXY_URL:-socks5://warp:1080}
+        required: false
     restart: unless-stopped
 
   warp:
@@ -44,6 +43,8 @@ services:
       file: https://github.com/cmj2002/warp-docker.git
       service: warp
     ports: !reset []
+    profiles:
+      - proxy
     restart: unless-stopped
     volumes:
       - warp-cloudflare-warp:/var/lib/cloudflare-warp

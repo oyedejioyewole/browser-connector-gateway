@@ -3,10 +3,13 @@ services:
     depends_on:
       browser-connector-traffic-bypass-prober:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          pids: 1024
     extends:
       file: ./docker/shared/compose.yaml
       service: cluster
-    pids_limit: 1024
 
   browser-connector-gateway:
     depends_on:
