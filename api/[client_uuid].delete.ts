@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { defineHandler } from "nitro";
-import { getRouterParam, HTTPError } from "nitro/h3";
+import { defineHandler, HTTPError } from "nitro";
+import { getRouterParam } from "nitro/h3";
 import { z } from "zod";
 
 import { db } from "#db/index.ts";
@@ -21,7 +21,7 @@ export default defineHandler(async (event) => {
   const parsedRow = z
     .array(selectSchema)
     .nonempty()
-    .transform((row) => row.at(0))
+    .transform((row) => row[0])
     .safeParse(deletedRow);
   if (!parsedRow.success)
     throw new HTTPError(`Client '${clientId}' doesn't exist`, {
