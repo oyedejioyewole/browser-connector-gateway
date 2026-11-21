@@ -1,4 +1,4 @@
-FROM ghcr.io/oyedejioyewole/browser-connector:latest
+FROM ghcr.io/oyedejioyewole/browser-connector:edge
 
 COPY ./docker/scripts/browser-connector-cluster.sh ./scripts/docker-entrypoint-override.sh
 
