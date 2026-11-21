@@ -1,0 +1,9 @@
+FROM ghcr.io/oyedejioyewole/browser-connector:latest
+
+COPY ./docker/scripts/browser-connector-cluster.sh ./scripts/docker-entrypoint-override.sh
+
+RUN chmod +x ./scripts/docker-entrypoint-override.sh
+
+ENTRYPOINT [ "./scripts/docker-entrypoint-override.sh" ]
+
+CMD [ "python", "-m", "camoufox_connector.server" ]

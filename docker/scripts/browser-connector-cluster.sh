@@ -10,4 +10,4 @@ update-ca-certificates
 
 echo ""
 
-exec /app/scripts/docker-entrypoint.sh "$@"
+exec ./docker-entrypoint.sh "$@"

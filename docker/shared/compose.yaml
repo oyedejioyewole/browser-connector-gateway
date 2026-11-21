@@ -1,7 +1,5 @@
 services:
   cluster:
-    command: ["python", "-m", "camoufox_connector.server"]
-    entrypoint: ["/app/scripts/docker-entrypoint-override.sh"]
     environment:
       - CAMOUFOX_DEBUG=${CAMOUFOX_DEBUG:-false}
       - CAMOUFOX_MODE=${CAMOUFOX_MODE:-pool}
@@ -15,8 +13,6 @@ services:
     restart: unless-stopped
     # Shared memory size (required for browsers)
     shm_size: 2gb
-    volumes:
-      - ../scripts/browser-connector-cluster.sh:/app/scripts/docker-entrypoint-override.sh:ro
 
   gateway:
     environment:
